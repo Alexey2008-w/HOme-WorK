@@ -1,56 +1,66 @@
-cook_book = {
-    'индейка в сливочном соусе': [
-        {'ingridient_name': 'Филе бедра индейки', 'quantity': 700, 'measure': 'гр'},
-        {'ingridient_name': 'Репчатый лук', 'quantity': 150, 'measure': 'гр'},
-        {'ingridient_name': 'Сливки', 'quantity': 200, 'measure': 'мл'},
-        {'ingridient_name': 'Соевый соус', "quantity": 60, "measure": 'мл'},
-        {'ingridient_name': 'Прованские травы', 'quantity': 1, 'measure': 'ст.ложка'},
-        {'ingridient_name': 'Мед', 'quantity': 50, 'measure': 'гр'}],
-    'рис по-тайски': [
-        {'ingridient_name': 'рис', 'quantity': 200, 'measure': 'гр'},
-        {'ingridient_name': 'Чеснок', 'quantity': 2, 'measure': 'зубчика'},
-        {'ingridient_name': 'Болгарский перец', 'quantity': 100, 'measure': 'гр'},
-        {'ingridient_name': 'Репчатый лук', 'quantity': 100, 'measure': 'гр'},
-        {'ingridient_name': 'Карри', 'quantity': 1, 'measure': 'ч.ложка'},
-        {'ingridient_name': 'Соевый соус', 'quantity': 60, 'measure': 'мл'},
-        {'ingridient_name': 'Зеленый горошек', 'quantity': 50, 'measure': 'гр'}],
-    'запеченные яблоки': [
-        {'ingridient_name': 'Яблоки (крупные)', 'quantity': 2, 'measure': 'шт'},
-        {'ingridient_name': 'Тесто слоенное', 'quantity': 150, "measure": 'гр'},
-        {'ingridient_name': 'Орехи грецкие рубленые', 'quantity': 2, 'measure': 'ст.ложки'},
-        {'ingridient_name': 'Мед', 'quantity': 30, 'measure': 'гр'},
-        {'ingridient_name': 'Яйцо', "quantity": 1, 'measure': 'шт'}
-        ]
-    }
+cook_book = {}
+with open('recipes.txt', 'r', encoding='utf-8') as file:
+    while True:
+        # Читаем название блюда
+        dish_name = file.readline().strip()
+        if not dish_name:  
+            break
 
-def get_shop_list_by_dishes(dishes, person_count):
+        
+        ing_count = file.readline().strip()
+        if not ing_count:  
+            break
+        ing_count = int(ing_count)
+
+        
+        ingredients = []
+        for _ in range(ing_count):
+            ing_line = file.readline().strip()
+            if not ing_line:  
+                break
+            
+            ing_data = ing_line.split('|')
+            if len(ing_data) < 3:  
+                continue
+            ingredient_name = ing_data[0].strip()
+            quantity = int(ing_data[1].strip())
+            measure = ing_data[2].strip()
+            
+            ingredients.append({
+                'ingredient_name': ingredient_name,
+                'quantity': quantity,
+                'measure': measure
+            })
+        cook_book[dish_name] = ingredients
+
+        empty_line = file.readline()
+        if not empty_line:  
+            break
+
+for dish, ingredients in cook_book.items():
+    print(f"{dish}:")
+    for ing in ingredients:
+        print(f"  {ing}")
+
+
+
+
+
+
+def get_shop_list_by_dishes(dishes, person_count, cook_book):
     shop_list = {}
     for dish in dishes:
-        for ingridient in cook_book[dish]:
-            new_shop_list_item = dict(ingridient)
-
-            new_shop_list_item['quantity'] *= person_count
-            if new_shop_list_item['ingridient_name'] not in shop_list:
-                shop_list[new_shop_list_item['ingridient_name']] = new_shop_list_item
-            else:
-                shop_list[new_shop_list_item['ingridient_name']]['quantity'] += new_shop_list_item['quantity']
-
-
+        if dish in cook_book:
+            for ingredient in cook_book[dish]:
+                name = ingredient['ingredient_name']
+                measure = ingredient['measure']
+                quantity = ingredient['quantity'] * person_count
+                
+                if name not in shop_list:
+                    shop_list[name] = {'measure': measure, 'quantity': quantity}
+                else:
+                    shop_list[name]['quantity'] += quantity
+        else:
+            print(f"Блюдо '{dish}' не найдено в кулинарной книге")
     return shop_list
 
-
-def print_shop_list(shop_list):
-    for shop_list_item in shop_list.values():
-        print(
-            '{} {} {}'.format(shop_list_item['ingridient_name'], shop_list_item['quantity'], shop_list_item['measure']))
-
-
-def create_shop_list():
-    person_count = int(input('Введите количество человек: '))
-    dishes = input('Введите блюда в расчете на одного человека (через запятую): ').lower().split(', ')
-    shop_list = get_shop_list_by_dishes(dishes, person_count)
-    print_shop_list(shop_list)
-    print()
-
-
-create_shop_list()
